@@ -1,0 +1,136 @@
+var express = require('express');
+var session = require('express-session');
+var bodyParser = require('body-Parser');
+var mysql = require('mysql');
+var crypto = require('crypto');
+var shasum = crypto.createHash('sha1');
+var MySQLStore = require('express-mysql-session')(session);
+
+var connection = mysql.createConnection({
+	host : 'localhost',
+	user : 'node',
+	password : 'nodenode',
+	database : 'o2'
+})
+
+connection.connect();
+var app = express();
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended :true}));
+app.use(session({
+	key : '_app.sess',
+	resave : false,
+	saveUnintialized : true,
+	secret : 'SEKR37asdf123!@#',
+	store : new MySQLStore({
+		host : 'localhost',
+		port : 3306,
+		user : 'node',
+		password : 'nodenode',
+		database : 'o2'
+	})
+}));
+
+app.get('/welcome', function(req, res){
+  if(req.session.displayName) {
+    res.send(
+    	`
+      <h1>Hello, ${req.session.displayName} </h1>
+      <a href="/auth/logout">logout</a>
+       `
+     );
+  } else {
+    res.send(
+    `
+      <h1>Welcome</h1>
+      <ul>
+		<li><a href="/auth/login">Login</a></li>
+		<li><a href="/auth/register">Register</a></li>
+      </ul>
+    `
+    );
+  }
+});
+
+app.post('/auth/login',function(req,res){
+
+	var username = req.body.username;
+	var password = req.body.password;
+	
+})
+
+app.get('/auth/login', function(req, res){
+  var output = `
+  <h1>Login</h1>
+  <form action="/auth/login" method="post">
+    <p>
+      <input type="text" name="username" placeholder="username">
+    </p>
+    <p>
+      <input type="password" name="password" placeholder="password">
+    </p>
+    <p>
+      <input type="submit">
+    </p>
+  </form>
+  `;
+  res.send(output);
+});
+
+app.get('/auth/register',function(req,res){
+
+	res.send(
+
+	    `
+	      <h1>Register</h1>
+	       <form action='/auth/register' method='POST'>
+		   <p>
+			<input type="text" name="username" placeholder="username">
+		   </p>
+		   <p>
+			<input type="password" name="password" placeholder="password">
+		   </p>
+		   <p>
+      		<input type="text" name="displayName" placeholder="displayName">
+    	   </p>
+		   <p>
+			<input type="submit">
+		   </p>
+	      </form>
+	    `
+	);
+})
+
+app.post('/auth/register', function(req,res){
+	
+	var usalt = Math.round((new Date().valueOf() * Math.random())) + ''; 
+    var auth_key = crypto.createHmac('sha1', usalt).update(req.body.password).digest('hex'); 
+
+	console.log(usalt);
+	var user ={
+
+		username : req.body.username,
+		password : auth_key,
+		salt : usalt,
+		displayName :req.body.displayName
+
+	}
+
+	var insert_user = 'insert into user (username,password,salt,displayName) values (?,?,?,?)';
+	connection.query(insert_user,[user.username,user.password,user.salt,user.displayName],function(err,result,field){
+		if(err)
+		{
+			res.send(err);
+		}
+		else
+		{
+			res.redirect('/welcome');
+		}
+	})
+})
+
+
+app.listen(3000,function(){
+	console.log('Login server connected !!!');
+})
