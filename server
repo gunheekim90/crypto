@@ -55,10 +55,45 @@ app.get('/welcome', function(req, res){
 
 app.post('/auth/login',function(req,res){
 
-	var username = req.body.username;
-	var password = req.body.password;
-	
-})
+	var user = {
+		username : req.body.username,
+		password : req.body.password
+	}
+
+	var search_salt = 'select salt from user where username = ?';
+	connection.query(search_salt,[user.username],function(err,rows,field){
+		if(err)
+		{
+			res.send(err);
+		}
+		else
+		{
+			var searched_salt = rows[0].salt; 
+            var auth_key = crypto.createHmac('sha1',searched_salt).update(user.password).digest('hex'); 
+            var search_pass = 'select * from user where username = ?';
+            connection.query(search_pass,[user.username],function(err,rows,field){
+
+            	if(auth_key === rows[0].password)
+            	{
+            		req.session.displayName = rows[0].displayName;
+            		console.log(req.session.displayName);
+            		res.send('welcome ' + user.username + '<a href="/auth/logout">logout</a>' );
+            	}
+            	else
+            	{
+            		res.send('Who are you? <a href="/auth/login">login</a>')
+            	}
+
+            });
+		}
+	})	
+});
+
+app.get('/auth/logout',function(req,res){
+
+     delete req.session.displayName;
+     res.send("logout succesful~")
+});
 
 app.get('/auth/login', function(req, res){
   var output = `
