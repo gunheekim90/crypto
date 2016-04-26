@@ -15,7 +15,12 @@
     "express-mysql": "0.0.1",
     "express-mysql-session": "^1.0.0-rc.0",
     "express-session": "^1.13.0",
+    "hasher": "^1.2.0",
     "mysql": "^2.10.2",
+    "passport": "^0.3.2",
+    "passport-facebook": "^2.1.0",
+    "passport-local": "^1.0.0",
+    "pbkdf2-password": "^1.1.0",
     "session": "^0.1.0",
     "session-file-store": "^0.2.0"
   }
