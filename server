@@ -102,7 +102,7 @@ passport.use(new FacebookStrategy({
     clientID:'1596998540590136',
     clientSecret: '06d3e1821cfa12a4ebeda40306349197',
     callbackURL: "/auth/facebook/callback",
-    profileFields:['id', 'email', 'gender', 'link', 'locale', 'name', 'timezone', 'updated_time', 'verified', 'displayName']
+    profileFields:['id', 'email', 'gender', 'link', 'locale', 'name', 'timezone', 'updated_time', 'verified', 'displayName','picture']
   },
   function(accessToken, refreshToken, profile, done) {
     console.log(profile);
@@ -116,7 +116,9 @@ passport.use(new FacebookStrategy({
           'authId':authId,
           'displayName':profile.displayName,
           'email':profile.emails[0].value,
-          'gender' : profile.gender
+          'gender' : profile.gender,
+          // 'picture' : profile.picture
+          //http://graph.facebook.com/'facebook : id'/picture?type=square
         };
         var sql = 'INSERT INTO user SET ?'
         conn.query(sql, newuser, function(err, results){
